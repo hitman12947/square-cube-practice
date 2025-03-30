@@ -95,8 +95,8 @@
             }, 1000);
         }
 
-        function getRandomNumber(max) {
-            return Math.floor(Math.random() * max) + 1;
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
         function shuffle(array) {
@@ -107,7 +107,7 @@
         }
 
         function generateQuestion() {
-            let number = mode === 'square' ? getRandomNumber(50) : getRandomNumber(30);
+            let number = mode === 'square' ? getRandomNumber(31, 50) : getRandomNumber(11, 30);
             correctAnswer = mode === 'square' ? number * number : number * number * number;
             document.getElementById("question").innerText = mode === 'square' 
                 ? `What is ${number}²?` 
@@ -115,7 +115,7 @@
 
             let options = new Set([correctAnswer]);
             while (options.size < 4) {
-                options.add(mode === 'square' ? getRandomNumber(50) ** 2 : getRandomNumber(30) ** 3);
+                options.add(mode === 'square' ? getRandomNumber(31, 50) ** 2 : getRandomNumber(11, 30) ** 3);
             }
 
             let optionsArray = Array.from(options);
