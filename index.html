@@ -3,94 +3,131 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Math Practice</title>
+    <title>Square & Cube Practice</title>
     <style>
-        * {
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #f4f4f4;
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
         }
-        body { 
-            font-family: Arial, sans-serif; 
-            text-align: center; 
-            padding: 20px; 
-            background-color: #f4f4f9; 
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
+
         .container {
-            width: 90%;
-            max-width: 500px;
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            margin-top: 50px;
         }
-        .option {
-            padding: 12px 20px; 
-            margin: 10px; 
-            border: none; 
-            cursor: pointer; 
-            display: block;
-            width: 100%;
-            font-size: 18px; 
-            border-radius: 5px; 
-            background: #ddd;
-            transition: background 0.3s;
+
+        h1 {
+            color: #333;
         }
-        .option:hover { background: #bbb; }
-        .correct { background-color: green !important; color: white; }
-        .wrong { background-color: red !important; color: white; }
-        .question { font-size: 24px; margin-bottom: 20px; font-weight: bold; }
-        button { 
-            padding: 12px 20px; 
-            font-size: 18px; 
-            border: none; 
-            background: #007BFF; 
-            color: white; 
-            cursor: pointer; 
+
+        button {
+            margin: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            background-color: #007bff;
+            color: white;
             border-radius: 5px;
-            margin-top: 20px;
-            transition: background 0.3s;
-            width: 100%;
         }
-        button:hover { background: #0056b3; }
-        .hidden { display: none; }
-        .timer { font-size: 20px; font-weight: bold; margin-bottom: 10px; color: red; }
-        #nextButton:disabled { background: #ccc; cursor: not-allowed; }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .option {
+            display: block;
+            width: 200px;
+            margin: 10px auto;
+            padding: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #fff;
+            border: 2px solid #007bff;
+            color: #007bff;
+            border-radius: 5px;
+        }
+
+        .option:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .correct {
+            background-color: #28a745 !important;
+            color: white !important;
+        }
+
+        .incorrect {
+            background-color: #dc3545 !important;
+            color: white !important;
+        }
+
+        #feedback {
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        #timer {
+            font-size: 20px;
+            font-weight: bold;
+            color: red;
+            margin-bottom: 10px;
+        }
+
+        #nextBtn {
+            display: block;
+            margin: 20px auto;
+        }
     </style>
 </head>
 <body>
-    <div class="container" id="modeSelection">
-        <h1>Select Practice Mode</h1>
-        <button onclick="startPractice('square')">Practice Squares</button>
-        <button onclick="startPractice('cube')">Practice Cubes</button>
-    </div>
+    <div class="container">
+        <h1>Math Practice: Squares & Cubes</h1>
+        <div id="startScreen">
+            <h2>Select a Practice Mode</h2>
+            <button onclick="startGame('square')">Practice Squares (21-50)</button>
+            <button onclick="startGame('cube')">Practice Cubes (11-30)</button>
+        </div>
 
-    <div class="container hidden" id="quizContainer">
-        <div class="timer" id="timer">Time Left: 5:00</div>
-        <h1 id="quizTitle">Math Practice</h1>
-        <div class="question" id="question"></div>
-        <div id="options"></div>
-        <button id="nextButton" onclick="generateQuestion()" disabled>Next Question</button>
+        <div id="gameScreen" style="display: none;">
+            <p id="timer">Time Left: 5:00</p>
+            <p>✅ Correct: <span id="correctCount">0</span> | ❌ Incorrect: <span id="incorrectCount">0</span></p>
+            <h2 id="question">Loading...</h2>
+            <div id="options"></div>
+            <button id="nextBtn" onclick="generateQuestion()" style="display: none;">Next</button>
+        </div>
+
+        <div id="endScreen" style="display: none;">
+            <h2>Practice Session Over!</h2>
+            <p>✅ Correct Answers: <span id="finalCorrect">0</span></p>
+            <p>❌ Incorrect Answers: <span id="finalIncorrect">0</span></p>
+            <button onclick="restartGame()">Restart</button>
+        </div>
     </div>
 
     <script>
-        let correctAnswer;
-        let mode;
+        let mode = "";
+        let correct = 0;
+        let incorrect = 0;
+        let timeLeft = 300;
         let timer;
-        let timeLeft = 300; // 5 minutes in seconds
+        let currentNumber;
+        let correctAnswer;
 
-        function startPractice(selectedMode) {
+        function startGame(selectedMode) {
             mode = selectedMode;
-            document.getElementById("modeSelection").classList.add("hidden");
-            document.getElementById("quizContainer").classList.remove("hidden");
-            document.getElementById("quizTitle").innerText = mode === 'square' ? 'Practice Squares' : 'Practice Cubes';
-            generateQuestion();
+            correct = 0;
+            incorrect = 0;
+            timeLeft = 300;
+            document.getElementById("startScreen").style.display = "none";
+            document.getElementById("gameScreen").style.display = "block";
+            document.getElementById("endScreen").style.display = "none";
+            document.getElementById("correctCount").innerText = correct;
+            document.getElementById("incorrectCount").innerText = incorrect;
             startTimer();
+            generateQuestion();
         }
 
         function startTimer() {
@@ -99,70 +136,59 @@
                 let minutes = Math.floor(timeLeft / 60);
                 let seconds = timeLeft % 60;
                 document.getElementById("timer").innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-
                 if (timeLeft <= 0) {
                     clearInterval(timer);
-                    alert("Time's up! Practice session over.");
-                    location.reload(); // Restart the session
+                    endGame();
                 }
             }, 1000);
         }
 
-        function getRandomNumber(min, max) {
-            return Math.floor(Math.random() * (max - min + 1)) + min;
-        }
-
-        function shuffle(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-        }
-
         function generateQuestion() {
-            document.getElementById("nextButton").disabled = true;
-            let number = mode === 'square' ? getRandomNumber(31, 50) : getRandomNumber(11, 30);
-            correctAnswer = mode === 'square' ? number * number : number * number * number;
-            document.getElementById("question").innerText = mode === 'square' 
-                ? `What is ${number}²?` 
-                : `What is ${number}³?`;
+            document.getElementById("nextBtn").style.display = "none";
+            let min = mode === "square" ? 21 : 11;
+            let max = mode === "square" ? 50 : 30;
+            currentNumber = Math.floor(Math.random() * (max - min + 1)) + min;
+            correctAnswer = mode === "square" ? currentNumber ** 2 : currentNumber ** 3;
+            document.getElementById("question").innerText = mode === "square" ? `What is ${currentNumber}²?` : `What is ${currentNumber}³?`;
+            generateOptions();
+        }
 
+        function generateOptions() {
+            let optionsDiv = document.getElementById("options");
+            optionsDiv.innerHTML = "";
             let options = new Set([correctAnswer]);
             while (options.size < 4) {
-                options.add(mode === 'square' ? getRandomNumber(31, 50) ** 2 : getRandomNumber(11, 30) ** 3);
+                let randomOffset = Math.floor(Math.random() * 10) + 1;
+                let wrongAnswer = Math.random() > 0.5 ? correctAnswer + randomOffset : correctAnswer - randomOffset;
+                if (wrongAnswer > 0) options.add(wrongAnswer);
             }
-
-            let optionsArray = Array.from(options);
-            shuffle(optionsArray);
-
-            let optionsContainer = document.getElementById("options");
-            optionsContainer.innerHTML = "";
-            optionsArray.forEach(option => {
-                let button = document.createElement("div");
-                button.classList.add("option");
+            Array.from(options).sort(() => Math.random() - 0.5).forEach(option => {
+                let button = document.createElement("button");
                 button.innerText = option;
-                button.onclick = function () {
-                    checkAnswer(button, option);
-                };
-                optionsContainer.appendChild(button);
+                button.classList.add("option");
+                button.onclick = () => checkAnswer(button, option);
+                optionsDiv.appendChild(button);
             });
         }
 
         function checkAnswer(button, selectedAnswer) {
             let options = document.querySelectorAll(".option");
-            options.forEach(opt => opt.onclick = null); // Disable further clicks
-            
+            options.forEach(opt => opt.disabled = true);
             if (selectedAnswer === correctAnswer) {
+                correct++;
                 button.classList.add("correct");
             } else {
-                button.classList.add("wrong");
+                incorrect++;
+                button.classList.add("incorrect");
                 options.forEach(opt => {
                     if (parseInt(opt.innerText) === correctAnswer) {
-                        setTimeout(() => opt.classList.add("correct"), 500);
+                        opt.classList.add("correct");
                     }
                 });
             }
-            document.getElementById("nextButton").disabled = false;
+            document.getElementById("correctCount").innerText = correct;
+            document.getElementById("incorrectCount").innerText = incorrect;
+            document.getElementById("nextBtn").style.display = "block";
         }
     </script>
 </body>
