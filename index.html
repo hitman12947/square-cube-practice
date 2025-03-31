@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Square & Cube Practice</title>
     <style>
         body {
@@ -11,10 +11,23 @@
             background-color: #f4f4f4;
             margin: 0;
             padding: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
         .container {
-            margin-top: 50px;
+            width: 100%;
+            max-width: 400px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         h1 {
@@ -22,9 +35,10 @@
         }
 
         button {
-            margin: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            font-size: 18px;
             cursor: pointer;
             border: none;
             background-color: #007bff;
@@ -37,11 +51,10 @@
         }
 
         .option {
-            display: block;
-            width: 200px;
-            margin: 10px auto;
-            padding: 10px;
-            font-size: 16px;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            font-size: 18px;
             cursor: pointer;
             background-color: #fff;
             border: 2px solid #007bff;
@@ -64,11 +77,6 @@
             color: white !important;
         }
 
-        #feedback {
-            font-size: 18px;
-            font-weight: bold;
-        }
-
         #timer {
             font-size: 20px;
             font-weight: bold;
@@ -78,7 +86,8 @@
 
         #nextBtn {
             display: block;
-            margin: 20px auto;
+            width: 100%;
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -109,86 +118,83 @@
 
     <script>
         let mode = "";
-        let correct = 0;
-        let incorrect = 0;
-        let timeLeft = 300;
-        let timer;
-        let currentNumber;
-        let correctAnswer;
-
         function startGame(selectedMode) {
             mode = selectedMode;
-            correct = 0;
-            incorrect = 0;
-            timeLeft = 300;
             document.getElementById("startScreen").style.display = "none";
             document.getElementById("gameScreen").style.display = "block";
-            document.getElementById("endScreen").style.display = "none";
-            document.getElementById("correctCount").innerText = correct;
-            document.getElementById("incorrectCount").innerText = incorrect;
-            startTimer();
             generateQuestion();
-        }
-
-        function startTimer() {
-            timer = setInterval(() => {
-                timeLeft--;
-                let minutes = Math.floor(timeLeft / 60);
-                let seconds = timeLeft % 60;
-                document.getElementById("timer").innerText = `Time Left: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    endGame();
-                }
-            }, 1000);
+            startTimer();
         }
 
         function generateQuestion() {
-            document.getElementById("nextBtn").style.display = "none";
-            let min = mode === "square" ? 21 : 11;
-            let max = mode === "square" ? 50 : 30;
-            currentNumber = Math.floor(Math.random() * (max - min + 1)) + min;
-            correctAnswer = mode === "square" ? currentNumber ** 2 : currentNumber ** 3;
-            document.getElementById("question").innerText = mode === "square" ? `What is ${currentNumber}²?` : `What is ${currentNumber}³?`;
-            generateOptions();
+            let number, correctAnswer;
+            if (mode === "square") {
+                number = Math.floor(Math.random() * (50 - 21 + 1)) + 21;
+                correctAnswer = number * number;
+            } else {
+                number = Math.floor(Math.random() * (30 - 11 + 1)) + 11;
+                correctAnswer = number * number * number;
+            }
+
+            document.getElementById("question").innerText = `What is ${number} ${mode === "square" ? "squared" : "cubed"}?`;
+            let options = generateOptions(correctAnswer);
+            displayOptions(options, correctAnswer);
         }
 
-        function generateOptions() {
-            let optionsDiv = document.getElementById("options");
-            optionsDiv.innerHTML = "";
-            let options = new Set([correctAnswer]);
+        function generateOptions(correctAnswer) {
+            let options = new Set();
+            options.add(correctAnswer);
             while (options.size < 4) {
-                let randomOffset = Math.floor(Math.random() * 10) + 1;
-                let wrongAnswer = Math.random() > 0.5 ? correctAnswer + randomOffset : correctAnswer - randomOffset;
-                if (wrongAnswer > 0) options.add(wrongAnswer);
+                options.add(correctAnswer + Math.floor(Math.random() * 20) - 10);
             }
-            Array.from(options).sort(() => Math.random() - 0.5).forEach(option => {
-                let button = document.createElement("button");
-                button.innerText = option;
-                button.classList.add("option");
-                button.onclick = () => checkAnswer(button, option);
-                optionsDiv.appendChild(button);
+            return Array.from(options).sort(() => Math.random() - 0.5);
+        }
+
+        function displayOptions(options, correctAnswer) {
+            const optionsContainer = document.getElementById("options");
+            optionsContainer.innerHTML = "";
+            options.forEach(option => {
+                const btn = document.createElement("button");
+                btn.classList.add("option");
+                btn.innerText = option;
+                btn.onclick = () => checkAnswer(btn, option, correctAnswer);
+                optionsContainer.appendChild(btn);
             });
         }
 
-        function checkAnswer(button, selectedAnswer) {
-            let options = document.querySelectorAll(".option");
-            options.forEach(opt => opt.disabled = true);
-            if (selectedAnswer === correctAnswer) {
-                correct++;
+        function checkAnswer(button, selected, correctAnswer) {
+            document.querySelectorAll(".option").forEach(btn => btn.disabled = true);
+            if (selected === correctAnswer) {
                 button.classList.add("correct");
+                document.getElementById("correctCount").innerText++;
             } else {
-                incorrect++;
                 button.classList.add("incorrect");
-                options.forEach(opt => {
-                    if (parseInt(opt.innerText) === correctAnswer) {
-                        opt.classList.add("correct");
+                document.getElementById("incorrectCount").innerText++;
+                document.querySelectorAll(".option").forEach(btn => {
+                    if (parseInt(btn.innerText) === correctAnswer) {
+                        btn.classList.add("correct");
                     }
                 });
             }
-            document.getElementById("correctCount").innerText = correct;
-            document.getElementById("incorrectCount").innerText = incorrect;
             document.getElementById("nextBtn").style.display = "block";
+        }
+
+        function startTimer() {
+            let timeLeft = 300;
+            const timerElement = document.getElementById("timer");
+            const timerInterval = setInterval(() => {
+                let minutes = Math.floor(timeLeft / 60);
+                let seconds = timeLeft % 60;
+                timerElement.innerText = `Time Left: ${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+                timeLeft--;
+                if (timeLeft < 0) {
+                    clearInterval(timerInterval);
+                    document.getElementById("gameScreen").style.display = "none";
+                    document.getElementById("endScreen").style.display = "block";
+                    document.getElementById("finalCorrect").innerText = document.getElementById("correctCount").innerText;
+                    document.getElementById("finalIncorrect").innerText = document.getElementById("incorrectCount").innerText;
+                }
+            }, 1000);
         }
     </script>
 </body>
